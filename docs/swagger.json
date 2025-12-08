@@ -6,8 +6,9 @@
         "contact": {},
         "version": "1.0"
     },
-    "host": "localhost:8080",
+    "host": "paydeya-backend.onrender.com",
     "basePath": "/api/v1",
+    "schemes": ["https"],
     "paths": {
         "/admin/statistics": {
             "get": {

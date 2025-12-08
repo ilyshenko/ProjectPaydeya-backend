@@ -18,6 +18,7 @@ import (
     "paydeya-backend/internal/repositories"
     "paydeya-backend/internal/services"
     "paydeya-backend/internal/middleware"
+    "encoding/json"
 
 
     "github.com/joho/godotenv"
@@ -67,6 +68,43 @@ func runMigrations() error {
     return nil
 }
 
+// dynamicSwaggerHandler динамически генерирует swagger.json
+func dynamicSwaggerHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Читаем оригинальный swagger.json
+		data, err := os.ReadFile("./docs/swagger.json")
+		if err != nil {
+			c.JSON(500, gin.H{"error": "Failed to read swagger.json"})
+			return
+		}
+
+		var swagger map[string]interface{}
+		if err := json.Unmarshal(data, &swagger); err != nil {
+			c.JSON(500, gin.H{"error": "Failed to parse swagger.json"})
+			return
+		}
+
+		// Определяем хост автоматически
+		// На Render есть переменная окружения RENDER_EXTERNAL_HOSTNAME
+		host := os.Getenv("RENDER_EXTERNAL_HOSTNAME")
+		if host == "" {
+			// Локальная разработка
+			host = "localhost:8080"
+			swagger["schemes"] = []string{"http"}
+		} else {
+			// Продакшен на Render
+			swagger["schemes"] = []string{"https"}
+		}
+
+		// Устанавливаем хост
+		swagger["host"] = host
+
+		// Отправляем изменённый swagger.json
+		c.Header("Content-Type", "application/json; charset=utf-8")
+		c.JSON(200, swagger)
+	}
+}
+
 // @title Paydeya Education Platform API
 // @version 1.0
 // @description API для образовательной платформы Пайдея
@@ -77,8 +115,8 @@ func runMigrations() error {
 // schemes http
 
 // Для продакшена (закомментировать выше и раскомментировать ниже):
-// @host paydeya-backend.onrender.com
-// @schemes https
+// host paydeya-backend.onrender.com
+// schemes https
 
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
@@ -254,10 +292,7 @@ func main() {
         catalog.GET("/teachers", catalogHandler.SearchTeachers)
     }
 
-    router.GET("/swagger.json", func(c *gin.Context) {
-        c.Header("Content-Type", "application/json; charset=utf-8") // ← ДОБАВЬТЕ ЭТУ СТРОЧКУ
-        c.File("./docs/swagger.json")
-    })
+    router.GET("/swagger.json", dynamicSwaggerHandler())
 
     //router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/swagger.json")))
 
