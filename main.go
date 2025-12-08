@@ -263,7 +263,7 @@ func main() {
 
     router.GET("/docs/*any", ginSwagger.WrapHandler(
         swaggerFiles.Handler,
-        ginSwagger.URL("https://paydeya-backend.onrender.com/swagger.json"), // ← ДОБАВЬТЕ ЭТОТ ПАРАМЕТР
+        ginSwagger.URL("https://paydeya-backend.onrender.com/swagger.json"),
     ))
 
     router.GET("/docs", func(c *gin.Context) {
