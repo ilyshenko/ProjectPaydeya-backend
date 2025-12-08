@@ -1,5 +1,6 @@
 -- Удаляем старую таблицу если существует
 DROP TABLE IF EXISTS material_completions;
+DROP TABLE IF EXISTS favorite_materials;
 
 -- Создаем таблицу рейтингов с правильными foreign keys
 CREATE TABLE IF NOT EXISTS material_ratings (
